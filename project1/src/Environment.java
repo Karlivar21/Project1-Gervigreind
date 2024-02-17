@@ -39,9 +39,27 @@ public class Environment {
             }
         }
         // one step forward and two left or right
-        
+        if (can_move_n_step_forward(state, y, 1, this.height - 4)){
+            if (x > 1 && state.board[y + one_step][x - 2] == 0) {
+                moves.add(new Move(x, y, x - 2, y + one_step));
+            }
+            if (x < this.width - 2 && state.board[y + one_step][x + 2] == 0) {
+                moves.add(new Move(x, y, x + 2, y + one_step));
+            }
+        }
         // diagonal moves
-        
+        if (x > 0 && state.board[y + one_step][x - 1] == opp) {
+            moves.add(new Move(x, y, x - 1, y + one_step));
+        }
+        if (x < this.width - 1 && state.board[y + one_step][x + 1] == opp) {
+            moves.add(new Move(x, y, x + 1, y + one_step));
+        }
+        if (x > 1 && state.board[y + one_step][x - 2] == opp) {
+            moves.add(new Move(x, y, x - 2, y + one_step));
+        }
+        if (x < this.width - 2 && state.board[y + one_step][x + 2] == opp) {
+            moves.add(new Move(x, y, x + 2, y + one_step));
+        }
     }
 
     public ArrayList<Move> get_legal_moves(State state) {
@@ -99,8 +117,38 @@ public class Environment {
 
     }
 
-    public void evaluate (int[][] board) {
-
+    public int evaluate(State state) {
+        // Check for win/lose conditions
+        boolean whiteWin = false;
+        boolean blackWin = false;
+        for (int x = 0; x < this.width; x++) {
+            if (state.board[0][x] == state.black) {
+                blackWin = true;
+                break;
+            }
+            if (state.board[this.height - 1][x] == state.white) {
+                whiteWin = true;
+                break;
+            }
+        }
+        if (whiteWin) return 100;
+        if (blackWin) return -100;
+        
+        // For draw or non-terminal states
+        int minDistanceBlack = this.height; // Max possible value initially
+        int minDistanceWhite = this.height; // Max possible value initially
+        for (int y = 0; y < this.height; y++) {
+            for (int x = 0; x < this.width; x++) {
+                if (state.board[y][x] == state.white) {
+                    minDistanceWhite = Math.min(minDistanceWhite, this.height - 1 - y);
+                } else if (state.board[y][x] == state.black) {
+                    minDistanceBlack = Math.min(minDistanceBlack, y);
+                }
+            }
+        }
+        // Calculate the evaluation score for non-terminal states
+        return minDistanceBlack - minDistanceWhite;
     }
+    
 
 }
