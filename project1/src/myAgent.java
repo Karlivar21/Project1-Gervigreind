@@ -38,7 +38,7 @@ public class myAgent implements Agent
             ArrayList<Move> moves = env.get_legal_moves(env.curr_state);
             Move move = moves.get(0);
             env.move(env.curr_state, move);
-            return "noop";
+            return "(move " + (move.x1+1) + " " + (move.y1+1) + " " + (move.x2+1) + " " + (move.y2+1) + ")";
 		} else {
             System.out.println(env.curr_state);
             ArrayList<Move> moves = env.get_legal_moves(env.curr_state);

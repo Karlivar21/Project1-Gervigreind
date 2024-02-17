@@ -12,15 +12,8 @@ public class Environment {
     }
 
     private boolean can_move_n_step_forward(State state, int y, int max_heightblack, int max_heightwhite) {
-        if (state.white_turn) {
-            if (y <= max_heightwhite) {
-                return true;
-            }
-        } else {
-            if (y >= max_heightblack) {
-                return true;
-            }
-        }
+        if (state.white_turn && y <= max_heightwhite) return true;
+        if (!state.white_turn && y >= max_heightblack) return true;
         return false;
     }
 
@@ -39,10 +32,24 @@ public class Environment {
             }
         }
         // one step forward and two left or right
+        if (can_move_n_step_forward(state, y, 1, this.height - 2)){
+            if (x > 1 && state.board[y + one_step][x - 2] == 0) {
+                moves.add(new Move(x, y, x - 2, y + one_step));
+            }
+            if (x < this.width - 2 && state.board[y + one_step][x + 2] == 0) {
+                moves.add(new Move(x, y, x + 2, y + one_step));
+            }
+        }
         
-        // diagonal moves
-        
+        // diagonal moves if there is an opponent piece
+        if (x > 0 && y > 0 && state.board[y + one_step][x - 1] == opp) {
+            moves.add(new Move(x, y, x - 1, y + one_step));
+        }
+        if (x < this.width - 1 && y > 0 && state.board[y + one_step][x + 1] == opp) {
+            moves.add(new Move(x, y, x + 1, y + one_step));
+        }
     }
+
 
     public ArrayList<Move> get_legal_moves(State state) {
         ArrayList<Move> moves = new ArrayList<>();
