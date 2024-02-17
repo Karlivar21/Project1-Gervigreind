@@ -55,6 +55,7 @@ public class RandomAgent implements Agent
 				y1 = random.nextInt(height-1)+2;
 				y2 = y1 - 1;
 			}
+
 			return "(move " + x1 + " " + y1 + " " + x2 + " " + y2 + ")";
 		} else {
 			return "noop";

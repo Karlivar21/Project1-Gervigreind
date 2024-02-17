@@ -126,10 +126,13 @@ public class myAgent implements Agent
 		myTurn = !myTurn;
 		if (myTurn) { 
             System.out.println(env.curr_state);
-            Move move = getBestMove(env.curr_state);
-            env.move(env.curr_state, move);
-            return "noop";
+            ArrayList<Move> Moves = env.get_legal_moves(env.curr_state);
+            env.move(env.curr_state, Moves.get(0));
+            System.out.println(env.curr_state);
+            return "(move)";
+            
 		} else {
+            System.out.println(env.curr_state);
 			return "noop";
 		}
 	}

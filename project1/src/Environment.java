@@ -12,15 +12,8 @@ public class Environment {
     }
 
     private boolean can_move_n_step_forward(State state, int y, int max_heightblack, int max_heightwhite) {
-        if (state.white_turn) {
-            if (y <= max_heightwhite) {
-                return true;
-            }
-        } else {
-            if (y >= max_heightblack) {
-                return true;
-            }
-        }
+        if (state.white_turn && y <= max_heightwhite) return true;
+        if (!state.white_turn && y >= max_heightblack) return true;
         return false;
     }
 
@@ -47,20 +40,16 @@ public class Environment {
                 moves.add(new Move(x, y, x + 2, y + one_step));
             }
         }
-        // diagonal moves
-        if (x > 0 && state.board[y + one_step][x - 1] == opp) {
+        
+        // diagonal moves if there is an opponent piece
+        if (x > 0 && y > 0 && state.board[y + one_step][x - 1] == opp) {
             moves.add(new Move(x, y, x - 1, y + one_step));
         }
-        if (x < this.width - 1 && state.board[y + one_step][x + 1] == opp) {
+        if (x < this.width - 1 && y > 0 && state.board[y + one_step][x + 1] == opp) {
             moves.add(new Move(x, y, x + 1, y + one_step));
         }
-        if (x > 1 && state.board[y + one_step][x - 2] == opp) {
-            moves.add(new Move(x, y, x - 2, y + one_step));
-        }
-        if (x < this.width - 2 && state.board[y + one_step][x + 2] == opp) {
-            moves.add(new Move(x, y, x + 2, y + one_step));
-        }
     }
+
 
     public ArrayList<Move> get_legal_moves(State state) {
         ArrayList<Move> moves = new ArrayList<>();
@@ -81,6 +70,7 @@ public class Environment {
         state.board[move.y2][move.x2] = state.board[move.y1][move.x1];
         state.board[move.y1][move.x1] = 0;
         state.white_turn = !state.white_turn;
+        System.out.println("Move222: " + move.x1 + " " + move.y1 + " " + move.x2 + " " + move.y2);
         curr_state.toString();
 
     }
