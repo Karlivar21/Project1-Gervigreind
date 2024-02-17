@@ -8,7 +8,6 @@ public class Main {
 	public static void main(String[] args){
 		try{
 			Agent agent = new myAgent();
-
 			int port=4001;
 			if(args.length>=1){
 				port=Integer.parseInt(args[0]);
