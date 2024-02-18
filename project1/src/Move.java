@@ -7,8 +7,7 @@ public class Move {
         this.x2 = x2;
         this.y2 = y2;
     }
-
     public String toString() {
-        return "Move from " + x1 + "," + y1 + " to " + x2 + "," + y2;
+        return "(move " + this.x1 + " " + this.y1 + " " + this.x2 + " " + this.y2 + ")";
     }
 }
