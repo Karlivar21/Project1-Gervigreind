@@ -25,6 +25,18 @@ public class State {
         }
     }
 
+    public State deepCopy(State state) {
+        State newState = new State(this.width, state.board[0].length);
+        for (int i = 0; i < state.board[0].length; i++) {
+            newState.board[i] = Arrays.copyOf(state.board[i], state.board[i].length);
+        }
+        newState.white_turn = state.white_turn;
+        return newState;
+
+    }
+
+    
+
     public String toString() {
         int dash_count = this.width * 5 - 6;
         String line = "\n" + " " + "-".repeat(dash_count) + "\n";

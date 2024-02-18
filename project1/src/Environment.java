@@ -15,6 +15,12 @@ public class Environment {
         this.current_state = new State(width, height);
     }
 
+    public boolean is_terminal(State state) {
+        ArrayList<Move> legalMoves = get_legal_moves(state);
+        return legalMoves.size() == 0;
+    }
+
+
     private boolean can_move_n_steps_forward(State state, int y, int max_height_black, int max_height_white) {
         if (state.white_turn && y <= max_height_white) return true;
         if (!state.white_turn && y >= max_height_black) return true;
@@ -96,5 +102,31 @@ public class Environment {
             state.board[move.y2][move.x2] = tmp;
         }
         state.white_turn = !state.white_turn;
+    }
+
+    public int evaluate(State state) {
+        int white_count = 0;
+        int black_count = 0;
+        for (int y = 0; y < this.height; y++) {
+            for (int x = 0; x < this.width; x++) {
+                if (state.board[y][x] == WHITE) white_count++;
+                if (state.board[y][x] == BLACK) black_count++;
+            }
+        }
+        return white_count - black_count;
+        
+    }
+
+    public State result(State state, Move move) {
+        State new_state = state.deepCopy(state);
+        move(new_state, move);
+        return new_state;
+    }
+
+    public int utility(State state) {
+        if (is_terminal(state)) {
+            return evaluate(state);
+        }
+        return 0;
     }
 }

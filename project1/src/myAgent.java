@@ -23,63 +23,62 @@ public class myAgent implements Agent {
         this.startTime = System.currentTimeMillis();
     }
 
-
-    public Move alpha_beta_root(State state, ArrayList<Move> moves) {
+    
+    public Move alphaBetaSearch(State state, int depth) {
+        Move bestMove = null;
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
         int v = Integer.MIN_VALUE;
-        Move best_move = null;
-        for (Move move : moves) {
-            env.move(state, move);
-            int new_v = alpha_beta_search(state, alpha, beta);
-            if (new_v > v) {
-                v = new_v;
-                best_move = move;
+        State newState = state.deepCopy(state);
+        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
+        for (Move move : legalMoves) {
+            int min = minValue(env.result(newState, move), alpha, beta, depth - 1);
+            if (min > v) {
+                v = min;
+                bestMove = move;
             }
-            env.undo_move(state, move);
+            alpha = Math.max(alpha, v);
         }
-        return best_move;
-        
+            
+
+        return bestMove;
     }
 
-    public int alpha_beta_search(State state, int alpha, int beta) {
-        if (state.white_turn) {
-            return max_value(state, alpha, beta);
-        } else {
-            return min_value(state, alpha, beta);
-        }
-    }
 
-    public int max_value(State state, int alpha, int beta) {
+    public int maxValue(State state, int alpha, int beta, int depth) {
+        if (env.is_terminal(state) || depth == 0) {
+            this.stateExpansions++;
+            return env.utility(state);
+        }
         int v = Integer.MIN_VALUE;
-        ArrayList<Move> moves = env.get_legal_moves(state);
-        for (Move move : moves) {
-            env.move(state, move);
-            v = Math.max(v, alpha_beta_search(state, alpha, beta));
-            env.undo_move(state, move);
-            if (v >= beta) {
-                return v;
-            }
+        State newState = state.deepCopy(state);
+        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
+        for (Move move : legalMoves) {
+            v = Math.max(v, minValue(env.result(newState, move), alpha, beta, depth - 1));
+            if (v >= beta) return v;
             alpha = Math.max(alpha, v);
         }
         return v;
     }
 
-    public int min_value(State state, int alpha, int beta) {
+    public int minValue(State state, int alpha, int beta, int depth) {
+        if (env.is_terminal(state) || depth == 0) {
+            this.stateExpansions++;
+            return env.utility(state);
+        }
         int v = Integer.MAX_VALUE;
-        ArrayList<Move> moves = env.get_legal_moves(state);
-        for (Move move : moves) {
-            env.move(state, move);
-            v = Math.min(v, alpha_beta_search(state, alpha, beta));
-            env.undo_move(state, move);
-            if (v <= alpha) {
-                return v;
-            }
+        State newState = state.deepCopy(state);
+        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
+        for (Move move : legalMoves) {
+            v = Math.min(v, maxValue(env.result(newState, move), alpha, beta, depth - 1));
+            if (v <= alpha) return v;
             beta = Math.min(beta, v);
         }
         return v;
     }
+    
 
+    
     
     public Move getBestMove(ArrayList<Move> legalMoves) {
         this.stateExpansions = 0; // Reset state expansions counter
@@ -91,9 +90,8 @@ public class myAgent implements Agent {
         while (true) {
             depth++;
             long iterationStart = System.currentTimeMillis();
-            Move currentBestMove = alpha_beta_root(env.current_state, legalMoves);
+            Move currentBestMove = alphaBetaSearch(env.current_state, depth);
             long iterationEnd = System.currentTimeMillis();
-    
             // Check if time is up or if a winning move is found
             if (playclock - (iterationEnd - searchStart) / 1000 <= 1) break; // Adjust 1 to your safety buffer
     
@@ -125,7 +123,6 @@ public class myAgent implements Agent {
     			roleOfLastPlayer = "black";
     		}
    			System.out.println(roleOfLastPlayer + " moved from " + x1 + "," + y1 + " to " + x2 + "," + y2);
-    		// TODO: 1. update your internal world model according to the action that was just executed
     		this.env.move(this.env.current_state, new Move(x1-1, y1-1, x2-1, y2-1));
     	}
 		
