@@ -32,7 +32,7 @@ public class Environment {
         int one_step = state.white_turn ? 1 : -1;
         int two_step = state.white_turn ? 2 : -2;
 
-        // two steps forward and one steo left/right
+        // two steps forward and one step left/right
         if (can_move_n_steps_forward(state, y, 2, this.height - 3)) {
             if (x > 0 && state.board[y + two_step][x - 1] == EMPTY) 
                 moves.add(new Move(x, y, x - 1, y + two_step));
@@ -43,27 +43,29 @@ public class Environment {
 
         // one step forward and two steps left/right
         if (can_move_n_steps_forward(state, y, 1, this.height - 2)){
-            if (x > 1 && state.board[y + one_step][x - 2] == 0) {
+            if (x > 0 && state.board[x - 1][y + one_step] == opponent) {
+                moves.add(new Move(x, y, x - 1, y + one_step));
+            }
+            if (x < this.width - 1 && state.board[x + 1][y + one_step] == opponent) {
+                moves.add(new Move(x, y, x + 1, y + one_step));
+            }
+            if (x > 1 && state.board[y + one_step][x - 2] == EMPTY) 
                 moves.add(new Move(x, y, x - 2, y + one_step));
-            }
-            if (x < this.width - 2 && state.board[y + one_step][x + 2] == 0) {
+            
+            if (x < this.width - 2 && state.board[y + one_step][x + 2] == EMPTY)
                 moves.add(new Move(x, y, x + 2, y + one_step));
-            }
+            
         }
 
-        // diagonal (capture)
-        if (x > 0 && y > 0 && state.board[y + one_step][x - 1] == opponent) {
-            moves.add(new Move(x, y, x - 1, y + one_step));
-        }
-        if (x < this.width - 1 && y > 0 && state.board[y + one_step][x + 1] == opponent) {
-            moves.add(new Move(x, y, x + 1, y + one_step));
-        }
+        
+
+        
     }
 
     public ArrayList<Move> get_legal_moves(State state) {
         ArrayList<Move> moves = new ArrayList<>();
         char friendly = state.white_turn ? WHITE : BLACK;
-
+        
         for (int y = 0; y < this.height; y++) {
             for (int x = 0; x < this.width; x++) {
                 if (state.board[y][x] == friendly) {
@@ -105,17 +107,38 @@ public class Environment {
     }
 
     public int evaluate(State state) {
-        int white_count = 0;
-        int black_count = 0;
+        int score = 0;
+        int white_distance = 0;
+        int black_distance = 0;
+        int shortest_distance_white = 0;
+        int shortest_distance_black = 0;
         for (int y = 0; y < this.height; y++) {
             for (int x = 0; x < this.width; x++) {
-                if (state.board[y][x] == WHITE) white_count++;
-                if (state.board[y][x] == BLACK) black_count++;
+                if (state.board[y][x] == WHITE) {
+                    white_distance += distance_to_end(state, y);
+                    if (shortest_distance_white == 0 || shortest_distance_white > y) {
+                        shortest_distance_white = y;
+                    }
+                }
+                if (state.board[y][x] == BLACK) {
+                    black_distance += distance_to_end(state, y);
+                    if (shortest_distance_black == 0 || shortest_distance_black > y) {
+                        shortest_distance_black = y;
+                    }
+                }
             }
         }
-        return white_count - black_count;
         
+        score = shortest_distance_white - shortest_distance_black;
+        // Example: add aggression score based on attacking moves
+        // This requires identifying moves that capture opponent piece
+        if (state.Win()){
+            score += state.white_turn ? 1000 : -1000;
+        }
+        return score;
+
     }
+
 
     public State result(State state, Move move) {
         State new_state = state.deepCopy(state);
@@ -129,4 +152,19 @@ public class Environment {
         }
         return 0;
     }
+
+    public int distance_to_end(State state, int y) {
+        if (state.white_turn) {
+            return this.height - 1 - y;
+        } else {
+            return y;
+        }
+    }
+
+    public boolean GameOver(State state) {
+        return is_terminal(state) || state.Win();
+    }
+
+    
+
 }

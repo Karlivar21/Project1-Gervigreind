@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class myAgent implements Agent {
@@ -8,6 +9,11 @@ public class myAgent implements Agent {
     private Environment env;
     private int stateExpansions;
     private long startTime;
+    private int totalExpansions;
+	private double totalTime;
+	private int totalDepthLimit;
+    private static final int MAX_VALUE = Integer.MAX_VALUE;
+	private static final int MIN_VALUE = Integer.MIN_VALUE;
 	
 	/*
 		init(String role, int playclock) is called once before you have to select the first action. Use it to initialize the agent. role is either "white" or "black" and playclock is the number of seconds after which nextAction must return.
@@ -24,90 +30,43 @@ public class myAgent implements Agent {
     }
 
     
-    public Move alphaBetaSearch(State state, int depth) {
-        Move bestMove = null;
-        int alpha = Integer.MIN_VALUE;
-        int beta = Integer.MAX_VALUE;
-        int v = Integer.MIN_VALUE;
-        State newState = state.deepCopy(state);
-        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
-        for (Move move : legalMoves) {
-            int min = minValue(env.result(newState, move), alpha, beta, depth - 1);
-            if (min > v) {
-                v = min;
-                bestMove = move;
+    public int alphaBetaRoot(State state, int depth, int alpha, int beta, boolean maxingPlayer) {
+        totalDepthLimit = Math.max(totalDepthLimit, depth);
+        totalExpansions++;
+        
+        if (depth == 0 || env.is_terminal(state)) {
+            return env.evaluate(state);
+        }
+
+        return maxingPlayer ? alphaBetaMax(state, depth, alpha, beta) : alphaBetaMin(state, depth, alpha, beta);
+    }
+
+    public int alphaBetaMax(State state, int depth, int alpha, int beta) {
+        int value = MIN_VALUE;
+        ArrayList<Move> next_moves = env.get_legal_moves(state);
+        for (Move move : next_moves) {
+            value = Math.max(value, alphaBetaRoot(env.result(state, move), depth - 1, alpha, beta, false));
+            alpha = Math.max(alpha, value);
+            if (alpha >= beta) {
+                break;
             }
-            alpha = Math.max(alpha, v);
         }
-        return bestMove;
+        return value;
     }
 
-
-    public int maxValue(State state, int alpha, int beta, int depth) {
-        if (env.is_terminal(state) || depth == 0) {
-            this.stateExpansions++;
-            return env.utility(state);
+    public int alphaBetaMin(State state, int depth, int alpha, int beta) {
+        int value = MAX_VALUE;
+        ArrayList<Move> next_moves = env.get_legal_moves(state);
+        for (Move move : next_moves) {
+            value = Math.min(value, alphaBetaRoot(env.result(state, move), depth - 1, alpha, beta, true));
+            beta = Math.min(beta, value);
+            if (alpha >= beta) {
+                break;
+            }
         }
-        int v = Integer.MIN_VALUE;
-        State newState = state.deepCopy(state);
-        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
-        for (Move move : legalMoves) {
-            v = Math.max(v, minValue(env.result(newState, move), alpha, beta, depth - 1));
-            if (v >= beta) return v;
-            alpha = Math.max(alpha, v);
-        }
-        return v;
-    }
-
-    public int minValue(State state, int alpha, int beta, int depth) {
-        if (env.is_terminal(state) || depth == 0) {
-            this.stateExpansions++;
-            return env.utility(state);
-        }
-        int v = Integer.MAX_VALUE;
-        State newState = state.deepCopy(state);
-        ArrayList<Move> legalMoves = env.get_legal_moves(newState);
-        for (Move move : legalMoves) {
-            v = Math.min(v, maxValue(env.result(newState, move), alpha, beta, depth - 1));
-            if (v <= alpha) return v;
-            beta = Math.min(beta, v);
-        }
-        return v;
+        return value;
     }
     
-
-    
-    public Move getBestMove(ArrayList<Move> legalMoves) {
-        this.stateExpansions = 0; // Reset state expansions counter
-        Move bestMove = null;
-        int depth = 0;
-        long searchStart = System.currentTimeMillis();
-    
-        // Iterative deepening loop
-        while (true) {
-            depth++;
-            long iterationStart = System.currentTimeMillis();
-            Move currentBestMove = alphaBetaSearch(env.current_state, depth);
-            long iterationEnd = System.currentTimeMillis();
-            // Check if time is up or if a winning move is found
-            if (playclock - (iterationEnd - searchStart) / 1000 <= 1) break; // Adjust 1 to your safety buffer
-    
-            bestMove = currentBestMove; // Update best move
-    
-            // Outputting information
-            System.out.println("Depth: " + depth + ", State Expansions: " + this.stateExpansions +
-                    ", Time for last depth: " + (iterationEnd - iterationStart) + "ms");
-        }
-    
-        long searchEnd = System.currentTimeMillis();
-        System.out.println("Total search time: " + (searchEnd - searchStart) + "ms");
-        System.out.println("Total state expansions: " + this.stateExpansions);
-    
-        return bestMove;
-    }
-    
-
-
 	// lastMove is null the first time nextAction gets called (in the initial state)
     // otherwise it contains the coordinates x1,y1,x2,y2 of the move that the last player did
     public String nextAction(int[] lastMove) {
@@ -128,17 +87,48 @@ public class myAgent implements Agent {
 		if (myTurn) {
 			// TODO: 2. run alpha-beta search to determine the best move
             // Move move = env.get_legal_moves(env.current_state).get(0);
-            ArrayList<Move> moves = env.get_legal_moves(env.current_state);
-            Move best_move = getBestMove(moves);
+            long startTime = System.currentTimeMillis();
+            ArrayList<Move> next_moves = this.env.get_legal_moves(this.env.current_state);
+            int bestValue = MIN_VALUE;
+            Move bestMove = null;
+            int depth = 1;
+            boolean maxingPlayer = false;
+            Move currentBestMove = null;
+            while (true) {
+                for (Move move : next_moves) {
+                    int newValue = alphaBetaRoot(env.result(env.current_state, move), depth, MIN_VALUE, MAX_VALUE, maxingPlayer);
+                    if (newValue > bestValue) {
+                        bestValue = newValue;
+                        currentBestMove = move;
+                    }
+                    
+                }
+                bestMove = currentBestMove;
+                long endTime = System.currentTimeMillis();
+                double duration = (endTime - startTime) / 1000.0;
+                System.out.println("Depth: " + depth + " Time: " + duration);
+                // if the time is up or the depth limit is reached
+                if (duration >= playclock - 1 || depth >= 5) {
+                    System.out.println(playclock);
+                    System.out.println("Time is up");
+                    break;
+                }
+                // System.out.println("Best Move111: " + bestMove + " Value: " + bestValue);
+                depth++;
+            }
 
+            if (bestMove != null) {
+                return "(move " + (bestMove.x1 + 1) + " " + (bestMove.y1 + 1) + " " + (bestMove.x2 + 1) + " " + (bestMove.y2 + 1) + ")";
+            } else {
+                System.out.println(env.current_state);
+                return "noop";
+            }
+        }
+        else {
             System.out.println(env.current_state);
-            return "(move " + (best_move.x1 + 1) + " " + (best_move.y1 + 1) + " " + (best_move.x2 + 1) + " " + (best_move.y2 + 1) + ")";
-            // return "(move " + (move.x1 + 1) + " " + (move.y1 + 1) + " " + (move.x2 + 1) + " " + (move.y2 + 1) + ")";
-		} else {
-            System.out.println(env.current_state);
-			return "noop";
-		}
-	}
+            return "noop";
+        }
+    }
 
 	// is called when the game is over or the match is aborted
 	@Override

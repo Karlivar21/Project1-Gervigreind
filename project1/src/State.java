@@ -7,11 +7,13 @@ public class State {
     static final char WHITE = 'W';
     static final char EMPTY = ' ';
     private final int width;
+    private final int height;
     
     public State(int width, int height) {
         this.board = new char[width][height];
         this.white_turn = true;
         this.width = width;
+        this.height = height;
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
@@ -47,4 +49,16 @@ public class State {
         return result;
     }
 
+    public boolean Win() {
+        for (int i = 0; i < this.width; i++) {
+            if (this.board[i][0] == WHITE || this.board[i][this.height - 1] == BLACK) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+
 }
+
