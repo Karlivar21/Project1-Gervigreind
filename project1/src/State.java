@@ -7,14 +7,16 @@ public class State {
     static final char WHITE = 'W';
     static final char EMPTY = ' ';
     private final int width;
+    private final int height;
     
     public State(int width, int height) {
         this.board = new char[width][height];
         this.white_turn = true;
         this.width = width;
+        this.height = height;
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
                 if (i < 2)
                     this.board[i][j] = WHITE;
                 else if (i > height - 3)

@@ -39,8 +39,6 @@ public class myAgent implements Agent {
             }
             alpha = Math.max(alpha, v);
         }
-            
-
         return bestMove;
     }
 
