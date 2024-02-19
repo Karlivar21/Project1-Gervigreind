@@ -77,7 +77,6 @@ public class myAgent implements Agent {
     
 
     
-    
     public Move getBestMove(ArrayList<Move> legalMoves) {
         this.stateExpansions = 0; // Reset state expansions counter
         Move bestMove = null;
